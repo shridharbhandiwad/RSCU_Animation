@@ -6,7 +6,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui widgets
+QT       += core gui widgets 3dcore 3drender 3dinput 3dextras
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -47,8 +47,10 @@ SOURCES += \
     src/main.cpp \
     src/mainwindow.cpp \
     src/lcuscene.cpp \
+    src/lcuscene3d.cpp \
     src/datamodel.cpp \
     src/animationcontroller.cpp \
+    src/animationcontroller3d.cpp \
     src/components/basecomponent.cpp \
     src/components/pump.cpp \
     src/components/valve.cpp \
@@ -64,8 +66,10 @@ SOURCES += \
 HEADERS += \
     src/mainwindow.h \
     src/lcuscene.h \
+    src/lcuscene3d.h \
     src/datamodel.h \
     src/animationcontroller.h \
+    src/animationcontroller3d.h \
     src/components/basecomponent.h \
     src/components/pump.h \
     src/components/valve.h \

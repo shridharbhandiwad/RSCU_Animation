@@ -1,4 +1,6 @@
 #include "mainwindow.h"
+#include "lcuscene3d.h"
+#include "animationcontroller3d.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QGroupBox>
@@ -6,18 +8,31 @@
 #include <QStatusBar>
 #include <QDockWidget>
 #include <QFormLayout>
+#include <Qt3DExtras/Qt3DWindow>
+#include <Qt3DExtras/QOrbitCameraController>
+#include <Qt3DRender/QCamera>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
+    , m_is3DMode(false)
+    , m_3dWindow(nullptr)
+    , m_3dContainer(nullptr)
 {
     setWindowTitle("Liquid Cooling Unit (LCU) - RSCU A C01");
     resize(1400, 900);
     
+    // Create shared data model
     m_dataModel = new DataModel(this);
+    
+    // Create 2D scene and controller
     m_scene = new LCUScene(m_dataModel, this);
     m_animationController = new AnimationController(m_scene, m_dataModel, this);
     
+    // Setup UI (will start in 2D mode)
     setupUI();
+    
+    // Setup 3D view (but don't show it yet)
+    setup3DView();
     
     m_updateTimer = new QTimer(this);
     connect(m_updateTimer, &QTimer::timeout, this, &MainWindow::updateDisplay);
@@ -68,18 +83,22 @@ void MainWindow::createControlPanel()
     m_startButton = new QPushButton("Start System");
     m_stopButton = new QPushButton("Stop System");
     m_resetButton = new QPushButton("Reset All Trips");
+    m_toggleViewButton = new QPushButton("Switch to 3D View");
     
     m_startButton->setStyleSheet("QPushButton { background-color: #4CAF50; color: white; padding: 10px; font-weight: bold; }");
     m_stopButton->setStyleSheet("QPushButton { background-color: #f44336; color: white; padding: 10px; font-weight: bold; }");
     m_resetButton->setStyleSheet("QPushButton { background-color: #2196F3; color: white; padding: 10px; }");
+    m_toggleViewButton->setStyleSheet("QPushButton { background-color: #FF9800; color: white; padding: 10px; font-weight: bold; }");
     
     connect(m_startButton, &QPushButton::clicked, this, &MainWindow::onStartClicked);
     connect(m_stopButton, &QPushButton::clicked, this, &MainWindow::onStopClicked);
     connect(m_resetButton, &QPushButton::clicked, this, &MainWindow::onResetClicked);
+    connect(m_toggleViewButton, &QPushButton::clicked, this, &MainWindow::onToggleViewMode);
     
     controlLayout->addWidget(m_startButton);
     controlLayout->addWidget(m_stopButton);
     controlLayout->addWidget(m_resetButton);
+    controlLayout->addWidget(m_toggleViewButton);
     controlGroup->setLayout(controlLayout);
     layout->addWidget(controlGroup);
     
@@ -181,14 +200,25 @@ void MainWindow::createSensorDisplay()
 void MainWindow::onStartClicked()
 {
     m_dataModel->setSystemRunning(true);
-    m_animationController->start();
+    
+    // Start the appropriate animation controller
+    if (m_is3DMode) {
+        m_animationController3d->start();
+    } else {
+        m_animationController->start();
+    }
+    
     statusBar()->showMessage("System Running");
 }
 
 void MainWindow::onStopClicked()
 {
     m_dataModel->setSystemRunning(false);
+    
+    // Stop both animation controllers
     m_animationController->stop();
+    m_animationController3d->stop();
+    
     statusBar()->showMessage("System Stopped");
 }
 
@@ -225,4 +255,96 @@ void MainWindow::updateDisplay()
     m_wd1Label->setText(m_dataModel->getCompressorState(0) ? "Running" : "Idle");
     m_wd2Label->setText(m_dataModel->getCompressorState(1) ? "Running" : "Idle");
     m_wd3Label->setText(m_dataModel->getCompressorState(2) ? "Running" : "Idle");
+}
+
+void MainWindow::setup3DView()
+{
+    // Create 3D window
+    m_3dWindow = new Qt3DExtras::Qt3DWindow();
+    m_3dWindow->defaultFrameGraph()->setClearColor(QColor(200, 220, 240));
+    
+    // Create 3D scene
+    m_scene3d = new LCUScene3D(m_dataModel);
+    
+    // Setup camera
+    Qt3DRender::QCamera *camera = m_3dWindow->camera();
+    m_scene3d->setupCamera(camera);
+    
+    // Setup camera controller for user interaction
+    m_cameraController = new Qt3DExtras::QOrbitCameraController(m_scene3d);
+    m_cameraController->setLinearSpeed(50.0f);
+    m_cameraController->setLookSpeed(180.0f);
+    m_cameraController->setCamera(camera);
+    
+    // Set the root entity
+    m_3dWindow->setRootEntity(m_scene3d);
+    
+    // Create animation controller for 3D
+    m_animationController3d = new AnimationController3D(m_scene3d, m_dataModel, this);
+    
+    // Create container widget (not shown initially)
+    m_3dContainer = QWidget::createWindowContainer(m_3dWindow, this);
+    m_3dContainer->setMinimumSize(QSize(800, 600));
+    m_3dContainer->hide();
+}
+
+void MainWindow::onToggleViewMode()
+{
+    if (m_is3DMode) {
+        switchTo2D();
+    } else {
+        switchTo3D();
+    }
+}
+
+void MainWindow::switchTo2D()
+{
+    m_is3DMode = false;
+    
+    // Stop 3D animations
+    m_animationController3d->stop();
+    
+    // Hide 3D view
+    if (m_3dContainer) {
+        m_3dContainer->hide();
+    }
+    
+    // Show 2D view
+    setCentralWidget(m_view);
+    m_view->show();
+    
+    // Restart 2D animations if system is running
+    if (m_dataModel->isSystemRunning()) {
+        m_animationController->start();
+    }
+    
+    // Update button text
+    m_toggleViewButton->setText("Switch to 3D View");
+    
+    statusBar()->showMessage("Switched to 2D View");
+}
+
+void MainWindow::switchTo3D()
+{
+    m_is3DMode = true;
+    
+    // Stop 2D animations
+    m_animationController->stop();
+    
+    // Hide 2D view
+    m_view->hide();
+    
+    // Show 3D view
+    setCentralWidget(m_3dContainer);
+    m_3dContainer->show();
+    
+    // Start 3D animations if system is running
+    if (m_dataModel->isSystemRunning()) {
+        m_animationController3d->start();
+    }
+    
+    // Update button text
+    m_toggleViewButton->setText("Switch to 2D View");
+    
+    statusBar()->showMessage("Switched to 3D View - Use mouse to rotate/zoom");
 }
