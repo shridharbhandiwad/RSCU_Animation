@@ -8,13 +8,14 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 # Find Qt6 packages
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets 3DCore 3DRender 3DInput 3DExtras)
 
 # Source files
 set(SOURCES
     src/main.cpp
     src/mainwindow.cpp
     src/lcuscene.cpp
+    src/lcuscene3d.cpp
     src/components/basecomponent.cpp
     src/components/pump.cpp
     src/components/valve.cpp
@@ -27,12 +28,14 @@ set(SOURCES
     src/components/solenoidvalve.cpp
     src/datamodel.cpp
     src/animationcontroller.cpp
+    src/animationcontroller3d.cpp
 )
 
 # Header files
 set(HEADERS
     src/mainwindow.h
     src/lcuscene.h
+    src/lcuscene3d.h
     src/components/basecomponent.h
     src/components/pump.h
     src/components/valve.h
@@ -45,6 +48,7 @@ set(HEADERS
     src/components/solenoidvalve.h
     src/datamodel.h
     src/animationcontroller.h
+    src/animationcontroller3d.h
 )
 
 # Create executable
@@ -55,6 +59,10 @@ target_link_libraries(${PROJECT_NAME}
     Qt6::Core
     Qt6::Gui
     Qt6::Widgets
+    Qt6::3DCore
+    Qt6::3DRender
+    Qt6::3DInput
+    Qt6::3DExtras
 )
 
 # Include directories

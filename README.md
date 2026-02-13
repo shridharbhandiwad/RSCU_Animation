@@ -10,6 +10,7 @@ A comprehensive Qt C++ application that simulates a liquid cooling unit system w
 - **Real-time Animation**: Fluid flow visualization, rotating pumps and blowers, valve operations
 - **Live Data Display**: Temperature, pressure, flow rate sensors updated in real-time
 - **Interactive Controls**: Start/stop system, adjust cooling capacity, monitor component status
+- **3D Visualization**: Toggle between 2D schematic and interactive 3D model views with orbit camera controls
 
 ## System Components
 
@@ -39,6 +40,7 @@ This project supports two build systems: **CMake** and **qmake**. Choose the one
 
 1. **Qt 6.x** - Download and install from https://www.qt.io/download
    - Make sure Qt6 Widgets module is installed
+   - **Qt3D modules required** (Qt3DCore, Qt3DRender, Qt3DInput, Qt3DExtras)
    - Add Qt to your system PATH (optional for CMake, required for qmake)
 
 2. **Compiler**: Visual Studio 2019/2022 or MinGW (included with Qt)
@@ -103,17 +105,36 @@ run.bat
 3. Channels 1 and 2 will open automatically
 4. Refrigerant loop 1 will start
 
+### View Modes
+
+The application supports both 2D and 3D visualization modes:
+
+#### 2D View (Default)
+- Traditional schematic diagram view
+- Clear representation of all components and connections
+- Optimal for understanding system layout and monitoring
+
+#### 3D View
+- Fully interactive 3D model of the LCU system
+- **Mouse Controls**:
+  - Left-click + drag: Rotate view
+  - Right-click + drag: Pan view
+  - Scroll wheel: Zoom in/out
+- Realistic representation of physical components
+- Toggle between views using the **"Switch to 3D/2D View"** button
+
 ### Monitoring
 
 - **Left Panel**: System control buttons and cooling capacity adjustment
 - **Right Panel**: Real-time sensor readings and component status
-- **Main View**: Animated system diagram with flowing coolant and active components
+- **Main View**: Animated system diagram (2D) or interactive 3D model with flowing coolant and active components
 
 ### Controls
 
 - **Start System**: Activates the cooling system
 - **Stop System**: Safely shuts down all components
 - **Reset All Trips**: Clears any alarm conditions
+- **Switch View**: Toggle between 2D schematic and 3D model views
 - **Cooling Capacity**: Adjust between 0-100 kW
 
 ## Data Model API
@@ -162,9 +183,11 @@ LiquidCoolingUnit/
 └── src/
     ├── main.cpp
     ├── mainwindow.h/cpp
-    ├── lcuscene.h/cpp
+    ├── lcuscene.h/cpp           # 2D scene
+    ├── lcuscene3d.h/cpp         # 3D scene (NEW)
     ├── datamodel.h/cpp
-    ├── animationcontroller.h/cpp
+    ├── animationcontroller.h/cpp      # 2D animations
+    ├── animationcontroller3d.h/cpp    # 3D animations (NEW)
     └── components/
         ├── basecomponent.h/cpp
         ├── pump.h/cpp
