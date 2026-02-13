@@ -9,6 +9,7 @@
 #include <QDockWidget>
 #include <QFormLayout>
 #include <Qt3DExtras/Qt3DWindow>
+#include <Qt3DExtras/QForwardRenderer>
 #include <Qt3DExtras/QOrbitCameraController>
 #include <Qt3DRender/QCamera>
 
