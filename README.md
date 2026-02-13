@@ -33,37 +33,54 @@ A comprehensive Qt C++ application that simulates a liquid cooling unit system w
 
 ## Building on Windows
 
+This project supports two build systems: **CMake** and **qmake**. Choose the one you prefer.
+
 ### Prerequisites
 
 1. **Qt 6.x** - Download and install from https://www.qt.io/download
    - Make sure Qt6 Widgets module is installed
-   - Add Qt to your system PATH
+   - Add Qt to your system PATH (optional for CMake, required for qmake)
 
-2. **CMake 3.16+** - Download from https://cmake.org/download/
+2. **Compiler**: Visual Studio 2019/2022 or MinGW (included with Qt)
 
-3. **Visual Studio 2019/2022** or **MinGW** compiler
+3. **CMake 3.16+** (only if using CMake build) - Download from https://cmake.org/download/
 
 ### Build Instructions
 
-#### Using Command Line (CMake + Visual Studio)
+#### Option 1: Using qmake (Simplest - Recommended for Qt Users)
 
 ```bash
-# Create build directory
-mkdir build
-cd build
-
-# Configure with CMake (adjust Qt path as needed)
-cmake .. -DCMAKE_PREFIX_PATH="C:/Qt/6.x/msvc2019_64"
+# Open Qt Command Prompt (from Start Menu → Qt → Qt 6.x)
+# Navigate to project directory
 
 # Build
-cmake --build . --config Release
+build_qmake.bat
 
 # Run
-./bin/Release/LiquidCoolingUnit.exe
+run_qmake.bat
 ```
 
-#### Using Qt Creator
+#### Option 2: Using CMake
 
+```bash
+# Set Qt path
+set CMAKE_PREFIX_PATH=C:/Qt/6.x/msvc2019_64
+
+# Build
+build.bat
+
+# Run
+run.bat
+```
+
+#### Using Qt Creator (Easiest)
+
+**With qmake:**
+1. Open `LiquidCoolingUnit.pro` in Qt Creator
+2. Configure the project with your Qt kit
+3. Build and run (Ctrl+R)
+
+**With CMake:**
 1. Open `CMakeLists.txt` in Qt Creator
 2. Configure the project with your Qt kit
 3. Build and run (Ctrl+R)
@@ -74,6 +91,8 @@ cmake --build . --config Release
 2. Visual Studio will auto-detect CMakeLists.txt
 3. Select the build configuration
 4. Build and run (F5)
+
+**For detailed build instructions, see [BUILD_GUIDE.md](BUILD_GUIDE.md)**
 
 ## Usage
 
@@ -128,25 +147,35 @@ dataModel->setSolenoidValveState(0, true);  // Open solenoid valve 0
 
 ```
 LiquidCoolingUnit/
-├── CMakeLists.txt
-├── README.md
-├── src/
-│   ├── main.cpp
-│   ├── mainwindow.h/cpp
-│   ├── lcuscene.h/cpp
-│   ├── datamodel.h/cpp
-│   ├── animationcontroller.h/cpp
-│   └── components/
-│       ├── basecomponent.h/cpp
-│       ├── pump.h/cpp
-│       ├── valve.h/cpp
-│       ├── tank.h/cpp
-│       ├── heater.h/cpp
-│       ├── heatexchanger.h/cpp
-│       ├── condenser.h/cpp
-│       ├── blower.h/cpp
-│       ├── solenoidvalve.h/cpp
-│       └── pipe.h/cpp
+├── CMakeLists.txt              # CMake build configuration
+├── LiquidCoolingUnit.pro       # qmake project file
+├── README.md                   # This file
+├── BUILD_GUIDE.md             # Detailed build instructions
+├── TESTING.md                 # Testing procedures
+├── INTEGRATION_GUIDE.md       # External data integration
+├── build.bat                  # CMake build script (Windows)
+├── build_qmake.bat           # qmake build script (Windows)
+├── run.bat                    # Run script for CMake build
+├── run_qmake.bat             # Run script for qmake build
+├── clean_qmake.bat           # Clean qmake build artifacts
+├── test_data.json            # Sample test scenarios
+└── src/
+    ├── main.cpp
+    ├── mainwindow.h/cpp
+    ├── lcuscene.h/cpp
+    ├── datamodel.h/cpp
+    ├── animationcontroller.h/cpp
+    └── components/
+        ├── basecomponent.h/cpp
+        ├── pump.h/cpp
+        ├── valve.h/cpp
+        ├── tank.h/cpp
+        ├── heater.h/cpp
+        ├── heatexchanger.h/cpp
+        ├── condenser.h/cpp
+        ├── blower.h/cpp
+        ├── solenoidvalve.h/cpp
+        └── pipe.h/cpp
 ```
 
 ## Sample Data

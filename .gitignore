@@ -1,5 +1,6 @@
 # Build directories
 build/
+build_qmake/
 bin/
 lib/
 
@@ -9,6 +10,14 @@ CMakeFiles/
 cmake_install.cmake
 *.cmake
 !CMakeLists.txt
+
+# qmake
+Makefile
+Makefile.Debug
+Makefile.Release
+.qmake.stash
+*.pro.user
+*.pro.user.*
 
 # Qt
 *.pro.user
