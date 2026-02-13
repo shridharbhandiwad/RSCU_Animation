@@ -1,0 +1,229 @@
+{
+  "description": "Sample test data for Liquid Cooling Unit Simulator",
+  "test_scenarios": [
+    {
+      "name": "Normal Operation",
+      "duration_seconds": 60,
+      "system_state": {
+        "running": true,
+        "cooling_capacity_kw": 30
+      },
+      "coolant_system": {
+        "supply_temp_c": 22.5,
+        "return_temp_c": 28.3,
+        "system_pressure_bar": 2.5,
+        "return_pressure_bar": 2.0,
+        "flow_rate_lpm": 100.0,
+        "tank_level_percent": 75.0,
+        "heater_power_kw": 15.0
+      },
+      "pumps": [
+        {"id": 0, "running": true},
+        {"id": 1, "running": false}
+      ],
+      "channels": [
+        {"id": 0, "open": true, "flow_rate_lpm": 50.0},
+        {"id": 1, "open": true, "flow_rate_lpm": 50.0},
+        {"id": 2, "open": false, "flow_rate_lpm": 0.0},
+        {"id": 3, "open": false, "flow_rate_lpm": 0.0}
+      ],
+      "refrigerant_loops": [
+        {
+          "id": 0,
+          "compressor_running": true,
+          "solenoid_valve_open": true,
+          "blower_running": true,
+          "blower_speed_percent": 75.0,
+          "condenser_temp_c": 38.5,
+          "phe_temp_c": 18.2
+        },
+        {
+          "id": 1,
+          "compressor_running": false,
+          "solenoid_valve_open": false,
+          "blower_running": false,
+          "blower_speed_percent": 0.0,
+          "condenser_temp_c": 25.0,
+          "phe_temp_c": 25.0
+        },
+        {
+          "id": 2,
+          "compressor_running": false,
+          "solenoid_valve_open": false,
+          "blower_running": false,
+          "blower_speed_percent": 0.0,
+          "condenser_temp_c": 25.0,
+          "phe_temp_c": 25.0
+        }
+      ]
+    },
+    {
+      "name": "High Load Operation",
+      "duration_seconds": 120,
+      "system_state": {
+        "running": true,
+        "cooling_capacity_kw": 65
+      },
+      "coolant_system": {
+        "supply_temp_c": 20.0,
+        "return_temp_c": 32.5,
+        "system_pressure_bar": 3.2,
+        "return_pressure_bar": 2.6,
+        "flow_rate_lpm": 150.0,
+        "tank_level_percent": 70.0,
+        "heater_power_kw": 32.5
+      },
+      "pumps": [
+        {"id": 0, "running": true},
+        {"id": 1, "running": true}
+      ],
+      "channels": [
+        {"id": 0, "open": true, "flow_rate_lpm": 37.5},
+        {"id": 1, "open": true, "flow_rate_lpm": 37.5},
+        {"id": 2, "open": true, "flow_rate_lpm": 37.5},
+        {"id": 3, "open": true, "flow_rate_lpm": 37.5}
+      ],
+      "refrigerant_loops": [
+        {
+          "id": 0,
+          "compressor_running": true,
+          "solenoid_valve_open": true,
+          "blower_running": true,
+          "blower_speed_percent": 95.0,
+          "condenser_temp_c": 42.3,
+          "phe_temp_c": 15.8
+        },
+        {
+          "id": 1,
+          "compressor_running": true,
+          "solenoid_valve_open": true,
+          "blower_running": true,
+          "blower_speed_percent": 90.0,
+          "condenser_temp_c": 41.8,
+          "phe_temp_c": 16.2
+        },
+        {
+          "id": 2,
+          "compressor_running": true,
+          "solenoid_valve_open": true,
+          "blower_running": true,
+          "blower_speed_percent": 88.0,
+          "condenser_temp_c": 40.5,
+          "phe_temp_c": 16.5
+        }
+      ]
+    },
+    {
+      "name": "Startup Sequence",
+      "duration_seconds": 30,
+      "system_state": {
+        "running": true,
+        "cooling_capacity_kw": 10
+      },
+      "coolant_system": {
+        "supply_temp_c": 25.0,
+        "return_temp_c": 26.0,
+        "system_pressure_bar": 1.5,
+        "return_pressure_bar": 1.2,
+        "flow_rate_lpm": 50.0,
+        "tank_level_percent": 80.0,
+        "heater_power_kw": 5.0
+      },
+      "pumps": [
+        {"id": 0, "running": true},
+        {"id": 1, "running": false}
+      ],
+      "channels": [
+        {"id": 0, "open": true, "flow_rate_lpm": 50.0},
+        {"id": 1, "open": false, "flow_rate_lpm": 0.0},
+        {"id": 2, "open": false, "flow_rate_lpm": 0.0},
+        {"id": 3, "open": false, "flow_rate_lpm": 0.0}
+      ],
+      "refrigerant_loops": [
+        {
+          "id": 0,
+          "compressor_running": true,
+          "solenoid_valve_open": true,
+          "blower_running": true,
+          "blower_speed_percent": 60.0,
+          "condenser_temp_c": 32.0,
+          "phe_temp_c": 22.0
+        },
+        {
+          "id": 1,
+          "compressor_running": false,
+          "solenoid_valve_open": false,
+          "blower_running": false,
+          "blower_speed_percent": 0.0,
+          "condenser_temp_c": 25.0,
+          "phe_temp_c": 25.0
+        },
+        {
+          "id": 2,
+          "compressor_running": false,
+          "solenoid_valve_open": false,
+          "blower_running": false,
+          "blower_speed_percent": 0.0,
+          "condenser_temp_c": 25.0,
+          "phe_temp_c": 25.0
+        }
+      ]
+    },
+    {
+      "name": "Shutdown",
+      "duration_seconds": 15,
+      "system_state": {
+        "running": false,
+        "cooling_capacity_kw": 0
+      },
+      "coolant_system": {
+        "supply_temp_c": 24.5,
+        "return_temp_c": 24.8,
+        "system_pressure_bar": 0.0,
+        "return_pressure_bar": 0.0,
+        "flow_rate_lpm": 0.0,
+        "tank_level_percent": 75.0,
+        "heater_power_kw": 0.0
+      },
+      "pumps": [
+        {"id": 0, "running": false},
+        {"id": 1, "running": false}
+      ],
+      "channels": [
+        {"id": 0, "open": false, "flow_rate_lpm": 0.0},
+        {"id": 1, "open": false, "flow_rate_lpm": 0.0},
+        {"id": 2, "open": false, "flow_rate_lpm": 0.0},
+        {"id": 3, "open": false, "flow_rate_lpm": 0.0}
+      ],
+      "refrigerant_loops": [
+        {
+          "id": 0,
+          "compressor_running": false,
+          "solenoid_valve_open": false,
+          "blower_running": false,
+          "blower_speed_percent": 0.0,
+          "condenser_temp_c": 25.0,
+          "phe_temp_c": 25.0
+        },
+        {
+          "id": 1,
+          "compressor_running": false,
+          "solenoid_valve_open": false,
+          "blower_running": false,
+          "blower_speed_percent": 0.0,
+          "condenser_temp_c": 25.0,
+          "phe_temp_c": 25.0
+        },
+        {
+          "id": 2,
+          "compressor_running": false,
+          "solenoid_valve_open": false,
+          "blower_running": false,
+          "blower_speed_percent": 0.0,
+          "condenser_temp_c": 25.0,
+          "phe_temp_c": 25.0
+        }
+      ]
+    }
+  ]
+}
