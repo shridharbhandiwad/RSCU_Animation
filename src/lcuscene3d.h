@@ -69,22 +69,30 @@ private:
     
     // Coolant system components
     Qt3DCore::QEntity *m_tankEntity;
+    Qt3DExtras::QPhongMaterial *m_tankMaterial;
     Qt3DCore::QEntity *m_heaterEntity;
+    Qt3DExtras::QPhongMaterial *m_heaterMaterial;
     QVector<Qt3DCore::QEntity*> m_pumpEntities;
     QVector<Qt3DCore::QTransform*> m_pumpTransforms;
+    QVector<Qt3DExtras::QPhongMaterial*> m_pumpMaterials;
     QVector<Qt3DCore::QEntity*> m_coolantPipeEntities;
     
     // Channel system
     QVector<Qt3DCore::QEntity*> m_valveEntities;
     QVector<Qt3DCore::QTransform*> m_valveTransforms;
+    QVector<Qt3DExtras::QPhongMaterial*> m_valveMaterials;
     QVector<Qt3DCore::QEntity*> m_channelPipeEntities;
     
     // Refrigerant system
     QVector<Qt3DCore::QEntity*> m_heatExchangerEntities;
+    QVector<Qt3DExtras::QPhongMaterial*> m_heatExchangerMaterials;
     QVector<Qt3DCore::QEntity*> m_condenserEntities;
+    QVector<Qt3DExtras::QPhongMaterial*> m_condenserMaterials;
     QVector<Qt3DCore::QEntity*> m_blowerEntities;
     QVector<Qt3DCore::QTransform*> m_blowerTransforms;
+    QVector<Qt3DExtras::QPhongMaterial*> m_blowerMaterials;
     QVector<Qt3DCore::QEntity*> m_solenoidValveEntities;
+    QVector<Qt3DExtras::QPhongMaterial*> m_solenoidValveMaterials;
     QVector<Qt3DCore::QEntity*> m_refrigerantPipeEntities;
     
     // Animation tracking

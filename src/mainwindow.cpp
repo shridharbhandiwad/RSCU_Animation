@@ -204,9 +204,13 @@ void MainWindow::onStartClicked()
     
     // Start the appropriate animation controller
     if (m_is3DMode) {
-        m_animationController3d->start();
+        if (m_animationController3d) {
+            m_animationController3d->start();
+        }
     } else {
-        m_animationController->start();
+        if (m_animationController) {
+            m_animationController->start();
+        }
     }
     
     statusBar()->showMessage("System Running");
@@ -217,8 +221,12 @@ void MainWindow::onStopClicked()
     m_dataModel->setSystemRunning(false);
     
     // Stop both animation controllers
-    m_animationController->stop();
-    m_animationController3d->stop();
+    if (m_animationController) {
+        m_animationController->stop();
+    }
+    if (m_animationController3d) {
+        m_animationController3d->stop();
+    }
     
     statusBar()->showMessage("System Stopped");
 }
@@ -303,7 +311,9 @@ void MainWindow::switchTo2D()
     m_is3DMode = false;
     
     // Stop 3D animations
-    m_animationController3d->stop();
+    if (m_animationController3d) {
+        m_animationController3d->stop();
+    }
     
     // Hide 3D view
     if (m_3dContainer) {
@@ -311,16 +321,20 @@ void MainWindow::switchTo2D()
     }
     
     // Show 2D view
-    setCentralWidget(m_view);
-    m_view->show();
+    if (m_view) {
+        setCentralWidget(m_view);
+        m_view->show();
+    }
     
     // Restart 2D animations if system is running
-    if (m_dataModel->isSystemRunning()) {
+    if (m_dataModel->isSystemRunning() && m_animationController) {
         m_animationController->start();
     }
     
     // Update button text
-    m_toggleViewButton->setText("Switch to 3D View");
+    if (m_toggleViewButton) {
+        m_toggleViewButton->setText("Switch to 3D View");
+    }
     
     statusBar()->showMessage("Switched to 2D View");
 }
@@ -330,22 +344,30 @@ void MainWindow::switchTo3D()
     m_is3DMode = true;
     
     // Stop 2D animations
-    m_animationController->stop();
+    if (m_animationController) {
+        m_animationController->stop();
+    }
     
     // Hide 2D view
-    m_view->hide();
+    if (m_view) {
+        m_view->hide();
+    }
     
     // Show 3D view
-    setCentralWidget(m_3dContainer);
-    m_3dContainer->show();
+    if (m_3dContainer) {
+        setCentralWidget(m_3dContainer);
+        m_3dContainer->show();
+    }
     
     // Start 3D animations if system is running
-    if (m_dataModel->isSystemRunning()) {
+    if (m_dataModel->isSystemRunning() && m_animationController3d) {
         m_animationController3d->start();
     }
     
     // Update button text
-    m_toggleViewButton->setText("Switch to 2D View");
+    if (m_toggleViewButton) {
+        m_toggleViewButton->setText("Switch to 2D View");
+    }
     
     statusBar()->showMessage("Switched to 3D View - Use mouse to rotate/zoom");
 }
