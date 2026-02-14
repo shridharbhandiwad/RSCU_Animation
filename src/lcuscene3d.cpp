@@ -92,6 +92,9 @@ void LCUScene3D::createCoolantSystem()
         tankTransform->setRotationX(90);
     }
     
+    // Store tank material for state updates
+    m_tankMaterial = m_tankEntity->findChild<Qt3DExtras::QPhongMaterial*>();
+    
     // Create heater (box below tank)
     m_heaterEntity = createBox(
         QVector3D(-15, 0.5, 0),
@@ -99,6 +102,9 @@ void LCUScene3D::createCoolantSystem()
         QColor(200, 50, 50),
         this
     );
+    
+    // Store heater material for state updates
+    m_heaterMaterial = m_heaterEntity->findChild<Qt3DExtras::QPhongMaterial*>();
     
     // Create two pumps
     for (int i = 0; i < 2; ++i) {
@@ -124,36 +130,54 @@ void LCUScene3D::createCoolantSystem()
         // Store transform for animation
         Qt3DCore::QTransform *pumpTransform = pumpEntity->findChild<Qt3DCore::QTransform*>();
         m_pumpTransforms.append(pumpTransform);
+        
+        // Store material for state updates
+        Qt3DExtras::QPhongMaterial *pumpMaterial = pumpEntity->findChild<Qt3DExtras::QPhongMaterial*>();
+        m_pumpMaterials.append(pumpMaterial);
     }
 }
 
 void LCUScene3D::createChannelSystem()
 {
-    // Create 4 channel valves
-    for (int i = 0; i < 4; ++i) {
-        float xPos = -10 + (i * 5);
+    // Create 12 valves (3 per channel, matching 2D layout)
+    double startX = -10;
+    double startZ = 10;
+    double channelSpacing = 5;
+    double valveSpacing = 3;
+    
+    for (int ch = 0; ch < 4; ++ch) {
+        float zPos = startZ + (ch * channelSpacing);
         
-        // Create valve body (cylinder)
-        Qt3DCore::QEntity *valveEntity = createCylinder(
-            QVector3D(xPos, 2, 5),
-            0.8f,
-            2.0f,
-            QColor(120, 120, 120),
-            this
-        );
-        
-        // Add valve handle (sphere on top)
-        Qt3DCore::QEntity *handle = createSphere(
-            QVector3D(0, 1.5, 0),
-            0.5f,
-            QColor(200, 100, 50),
-            valveEntity
-        );
-        
-        m_valveEntities.append(valveEntity);
-        
-        Qt3DCore::QTransform *valveTransform = valveEntity->findChild<Qt3DCore::QTransform*>();
-        m_valveTransforms.append(valveTransform);
+        // Create 3 valves per channel
+        for (int v = 0; v < 3; ++v) {
+            float xPos = startX + (v * valveSpacing);
+            
+            // Create valve body (cylinder)
+            Qt3DCore::QEntity *valveEntity = createCylinder(
+                QVector3D(xPos, 2, zPos),
+                0.6f,
+                1.5f,
+                QColor(120, 120, 120),
+                this
+            );
+            
+            // Add valve handle (sphere on top)
+            Qt3DCore::QEntity *handle = createSphere(
+                QVector3D(0, 1.2, 0),
+                0.4f,
+                QColor(200, 100, 50),
+                valveEntity
+            );
+            
+            m_valveEntities.append(valveEntity);
+            
+            Qt3DCore::QTransform *valveTransform = valveEntity->findChild<Qt3DCore::QTransform*>();
+            m_valveTransforms.append(valveTransform);
+            
+            // Store material reference for state updates
+            Qt3DExtras::QPhongMaterial *material = valveEntity->findChild<Qt3DExtras::QPhongMaterial*>();
+            m_valveMaterials.append(material);
+        }
     }
 }
 
@@ -172,6 +196,10 @@ void LCUScene3D::createRefrigerantSystem()
         );
         m_heatExchangerEntities.append(heatExchanger);
         
+        // Store material for state updates
+        Qt3DExtras::QPhongMaterial *heMaterial = heatExchanger->findChild<Qt3DExtras::QPhongMaterial*>();
+        m_heatExchangerMaterials.append(heMaterial);
+        
         // Solenoid Valve (small cylinder)
         Qt3DCore::QEntity *solenoidValve = createCylinder(
             QVector3D(10, 3, zPos),
@@ -181,6 +209,10 @@ void LCUScene3D::createRefrigerantSystem()
             this
         );
         m_solenoidValveEntities.append(solenoidValve);
+        
+        // Store material for energized state visualization
+        Qt3DExtras::QPhongMaterial *svMaterial = solenoidValve->findChild<Qt3DExtras::QPhongMaterial*>();
+        m_solenoidValveMaterials.append(svMaterial);
         
         // Condenser (larger box with fins)
         Qt3DCore::QEntity *condenser = createBox(
@@ -200,6 +232,10 @@ void LCUScene3D::createRefrigerantSystem()
             );
         }
         m_condenserEntities.append(condenser);
+        
+        // Store material for state updates
+        Qt3DExtras::QPhongMaterial *condenserMaterial = condenser->findChild<Qt3DExtras::QPhongMaterial*>();
+        m_condenserMaterials.append(condenserMaterial);
         
         // Blower (cylinder with cone for fan)
         Qt3DCore::QEntity *blowerEntity = new Qt3DCore::QEntity(this);
@@ -233,6 +269,10 @@ void LCUScene3D::createRefrigerantSystem()
         
         Qt3DCore::QTransform *blowerTransform = housing->findChild<Qt3DCore::QTransform*>();
         m_blowerTransforms.append(blowerTransform);
+        
+        // Store material for state updates
+        Qt3DExtras::QPhongMaterial *blowerMaterial = housing->findChild<Qt3DExtras::QPhongMaterial*>();
+        m_blowerMaterials.append(blowerMaterial);
     }
 }
 
@@ -314,28 +354,135 @@ void LCUScene3D::updateAnimations(double deltaTime)
 {
     if (!m_dataModel) return;
     
-    // Update pump rotations
-    if (m_dataModel->isSystemRunning()) {
-        m_pumpRotation += deltaTime * 180.0; // degrees per second
-        if (m_pumpRotation >= 360.0) {
-            m_pumpRotation -= 360.0;
+    bool systemRunning = m_dataModel->isSystemRunning();
+    
+    // Update heater visual state
+    if (m_heaterMaterial) {
+        if (systemRunning) {
+            // Active heater - brighter red/orange glow
+            m_heaterMaterial->setDiffuse(QColor(255, 80, 20));
+            m_heaterMaterial->setAmbient(QColor(200, 50, 10));
+        } else {
+            // Inactive heater - dull red
+            m_heaterMaterial->setDiffuse(QColor(200, 50, 50));
+            m_heaterMaterial->setAmbient(QColor(150, 40, 40));
+        }
+    }
+    
+    // Update pump rotations and states
+    for (int i = 0; i < m_pumpEntities.size() && i < 2; ++i) {
+        bool pumpRunning = m_dataModel->getPumpState(i) && systemRunning;
+        
+        // Update pump rotation animation
+        if (pumpRunning && m_pumpTransforms[i]) {
+            m_pumpRotation += deltaTime * 180.0; // degrees per second
+            if (m_pumpRotation >= 360.0) {
+                m_pumpRotation -= 360.0;
+            }
+            m_pumpTransforms[i]->setRotationZ(m_pumpRotation);
         }
         
-        for (int i = 0; i < m_pumpTransforms.size(); ++i) {
-            if (m_dataModel->getPumpState(i) && m_pumpTransforms[i]) {
-                m_pumpTransforms[i]->setRotationZ(m_pumpRotation);
+        // Update pump color based on state
+        if (i < m_pumpMaterials.size() && m_pumpMaterials[i]) {
+            if (pumpRunning) {
+                // Running pump - brighter blue
+                m_pumpMaterials[i]->setDiffuse(QColor(100, 180, 240));
+                m_pumpMaterials[i]->setAmbient(QColor(80, 120, 160));
+            } else {
+                // Idle pump - dull blue
+                m_pumpMaterials[i]->setDiffuse(QColor(80, 120, 160));
+                m_pumpMaterials[i]->setAmbient(QColor(60, 90, 120));
+            }
+        }
+    }
+    
+    // Update channel valves (3 per channel, matching 2D scene)
+    for (int ch = 0; ch < 4; ++ch) {
+        bool channelOpen = m_dataModel->getChannelState(ch);
+        
+        for (int v = 0; v < 3; ++v) {
+            int valveIndex = ch * 3 + v;
+            if (valveIndex < m_valveMaterials.size() && m_valveMaterials[valveIndex]) {
+                if (channelOpen && systemRunning) {
+                    // Open valve - green
+                    m_valveMaterials[valveIndex]->setDiffuse(QColor(50, 200, 50));
+                    m_valveMaterials[valveIndex]->setAmbient(QColor(40, 150, 40));
+                } else {
+                    // Closed valve - gray
+                    m_valveMaterials[valveIndex]->setDiffuse(QColor(120, 120, 120));
+                    m_valveMaterials[valveIndex]->setAmbient(QColor(90, 90, 90));
+                }
+            }
+        }
+    }
+    
+    // Update refrigerant system (3 loops)
+    for (int i = 0; i < 3; ++i) {
+        bool compressorRunning = m_dataModel->getCompressorState(i);
+        bool solenoidOpen = m_dataModel->getSolenoidValveState(i);
+        bool blowerRunning = m_dataModel->getBlowerState(i);
+        
+        // Update heat exchanger state
+        if (i < m_heatExchangerMaterials.size() && m_heatExchangerMaterials[i]) {
+            if (compressorRunning) {
+                // Active heat exchanger - cyan tint
+                m_heatExchangerMaterials[i]->setDiffuse(QColor(150, 220, 250));
+                m_heatExchangerMaterials[i]->setAmbient(QColor(120, 180, 200));
+            } else {
+                // Inactive heat exchanger - gray
+                m_heatExchangerMaterials[i]->setDiffuse(QColor(180, 180, 180));
+                m_heatExchangerMaterials[i]->setAmbient(QColor(140, 140, 140));
             }
         }
         
-        // Update blower rotations (faster)
-        m_blowerRotation += deltaTime * 360.0;
-        if (m_blowerRotation >= 360.0) {
-            m_blowerRotation -= 360.0;
+        // Update solenoid valve state (energized visualization)
+        if (i < m_solenoidValveMaterials.size() && m_solenoidValveMaterials[i]) {
+            if (solenoidOpen) {
+                // Energized solenoid - bright yellow/green
+                m_solenoidValveMaterials[i]->setDiffuse(QColor(150, 255, 100));
+                m_solenoidValveMaterials[i]->setAmbient(QColor(100, 200, 70));
+            } else {
+                // De-energized solenoid - dark blue
+                m_solenoidValveMaterials[i]->setDiffuse(QColor(100, 100, 150));
+                m_solenoidValveMaterials[i]->setAmbient(QColor(70, 70, 110));
+            }
         }
         
-        for (int i = 0; i < m_blowerTransforms.size(); ++i) {
-            if (m_dataModel->getBlowerState(i) && m_blowerTransforms[i]) {
+        // Update condenser state
+        if (i < m_condenserMaterials.size() && m_condenserMaterials[i]) {
+            if (compressorRunning) {
+                // Active condenser - warmer color
+                m_condenserMaterials[i]->setDiffuse(QColor(200, 180, 160));
+                m_condenserMaterials[i]->setAmbient(QColor(160, 140, 120));
+            } else {
+                // Inactive condenser - gray
+                m_condenserMaterials[i]->setDiffuse(QColor(160, 160, 160));
+                m_condenserMaterials[i]->setAmbient(QColor(120, 120, 120));
+            }
+        }
+        
+        // Update blower rotation and state
+        if (i < m_blowerEntities.size()) {
+            if (blowerRunning && i < m_blowerTransforms.size() && m_blowerTransforms[i]) {
+                // Animate blower rotation (faster than pumps)
+                m_blowerRotation += deltaTime * 360.0;
+                if (m_blowerRotation >= 360.0) {
+                    m_blowerRotation -= 360.0;
+                }
                 m_blowerTransforms[i]->setRotationY(m_blowerRotation);
+            }
+            
+            // Update blower color based on state
+            if (i < m_blowerMaterials.size() && m_blowerMaterials[i]) {
+                if (blowerRunning) {
+                    // Running blower - brighter blue
+                    m_blowerMaterials[i]->setDiffuse(QColor(100, 140, 200));
+                    m_blowerMaterials[i]->setAmbient(QColor(80, 100, 150));
+                } else {
+                    // Idle blower - dark blue
+                    m_blowerMaterials[i]->setDiffuse(QColor(80, 80, 120));
+                    m_blowerMaterials[i]->setAmbient(QColor(60, 60, 90));
+                }
             }
         }
     }
